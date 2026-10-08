@@ -1,0 +1,22 @@
+[project]
+name = "cmmm"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Thomas Mattelaer", email = "mattelaer.thomas@hotmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+	"numpy",
+	"mypy",
+	"flake8",
+	"pydantic",
+]
+
+[project.scripts]
+cmmm = "cmmm:main"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
