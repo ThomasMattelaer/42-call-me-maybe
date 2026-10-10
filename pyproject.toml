@@ -12,6 +12,7 @@ dependencies = [
 	"mypy",
 	"flake8",
 	"pydantic",
+	"llm-sdk"
 ]
 [build-system]
 requires = ["uv_build>=0.12.23,<0.13.0"]
@@ -21,3 +22,5 @@ build-backend = "uv_build"
 module-name = "src"
 module-root = ""
 
+[tool.uv.sources]
+llm-sdk = { path = "llm_sdk", editable = true }

@@ -12,7 +12,11 @@ class Arguments:
 
 def parse_arguments() -> Arguments:
     parser = ArgumentParser()
-    parser.add_argument("--functions_definition", required=True, type=Path)
+    parser.add_argument(
+        "--functions_definition",
+        default=Path("data/input/functions_definition.json"),
+        type=Path
+    )
     parser.add_argument(
         "--input",
         default=Path("data/input/function_calling_tests.json"),

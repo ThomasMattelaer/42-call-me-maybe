@@ -1,11 +1,13 @@
 NAME = src
 
-install:
-	wget -qO- https://astral.sh/uv/install.sh | sh
-	uv sync
-
 run:
 	uv run python -m src
+	
+install:
+	wget -qO- https://astral.sh/uv/install.sh | sh
+	uv pip install -r pyproject.toml
+	uv sync
+
 
 debug:
 	uv run python -m pdb -m src

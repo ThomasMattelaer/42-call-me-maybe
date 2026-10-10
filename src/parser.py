@@ -35,19 +35,20 @@ class Parser():
 
     def is_prompt_present(self, json_file: list[dict]) -> bool:
         for element in json_file:
-            for key in element.keys():
-                if key != "prompt":
-                    raise ValueError("Prompt word missing")
+            if "prompt" not in element:
+                raise ValueError("Prompt key missing")
         return True
 
     def is_keys_valid(self, json_file: list[dict]) -> bool:
         expected_keys = ["name", "description", "parameters", "returns"]
         for element in json_file:
-            elements = []
-            for key in element.keys():
-                elements.append(key)
+            elements = [key for key in element.keys()]
             if sorted(elements) != sorted(expected_keys):
                 raise ValueError("A key is missing")
         return True
+
+    def retrieve_info(self, input_file: list[dict], key: str) -> list[str]:
+        return [element[key] for element in input_file]
+
 
 
