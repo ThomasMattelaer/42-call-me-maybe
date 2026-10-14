@@ -52,6 +52,6 @@ class Parser():
 
     def functions_to_str(self, input_file: list[dict]) -> str:
         return json.dumps(input_file)
-    
 
-
+    def str_to_json(self, str: str) -> list[dict]:
+        return json.loads(str)
