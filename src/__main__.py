@@ -1,6 +1,7 @@
 from .cli import parse_arguments
 from .parser import Parser
 from llm_sdk import Small_LLM_Model as llm
+from .logits_processor import ConstraintBuilder
 import json
 
 if __name__ == "__main__":
@@ -31,13 +32,14 @@ if __name__ == "__main__":
         prompt_len = len(token_list)
         next_token_id = None
         vocab = model.get_path_to_vocab_file()
-        print(vocab)
         with open(vocab, 'r') as file:
-            vocab_file = json.load(file)
-        print(f"{len(vocab_file)}, {type(vocab_file)}")
-        dict = list(vocab_file.items())[:20]
-        for x in range(20):
-            print(dict[x])
+            token_dict = json.load(file)
+        id_dict = {val: key for key, val in token_dict.items()}
+        builder = ConstraintBuilder(function_file)
+        test = builder.authorized_function_name("", id_dict)
+        print(test)
+        for test in test:
+            print(f"token [{test}] = {id_dict[test]}")
         for _ in range(35):
             logits = model.get_logits_from_input_ids(token_list)
             next_token_id = logits.index(max(logits))
