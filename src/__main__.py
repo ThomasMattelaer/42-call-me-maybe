@@ -1,6 +1,7 @@
 from .cli import parse_arguments
 from .parser import Parser
 from llm_sdk import Small_LLM_Model as llm
+import json
 
 if __name__ == "__main__":
     print("Working")
@@ -28,15 +29,18 @@ if __name__ == "__main__":
         token = model.encode(prompt)
         token_list = token[0].tolist()
         prompt_len = len(token_list)
-        eos_id = model._tokenizer.eos_token_id
-        print(f"last token_id : {eos_id}")
         next_token_id = None
+        vocab = model.get_path_to_vocab_file()
+        print(vocab)
+        with open(vocab, 'r') as file:
+            vocab_file = json.load(file)
+        print(f"{len(vocab_file)}, {type(vocab_file)}")
+        dict = list(vocab_file.items())[:20]
+        for x in range(20):
+            print(dict[x])
         for _ in range(35):
             logits = model.get_logits_from_input_ids(token_list)
             next_token_id = logits.index(max(logits))
-            print(next_token_id)
-            if next_token_id == eos_id:
-                break
             token_list.append(next_token_id)
         response_token = token_list[prompt_len:]
         decode = model.decode(response_token)
