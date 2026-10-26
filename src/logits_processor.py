@@ -8,11 +8,15 @@ class ConstraintBuilder():
         authorized_id = set()
         names = [prompt["name"] for prompt in self.functions]
         for token_id, text in id_dict.items():
+            if not text:
+                continue
             candidat = text_generated + text
             for name in names:
                 if name.startswith(candidat):
                     authorized_id.add(token_id)
         return authorized_id
+
+    
 
 
 
