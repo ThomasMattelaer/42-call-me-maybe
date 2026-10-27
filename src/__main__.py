@@ -45,7 +45,13 @@ if __name__ == "__main__":
             text_generated += id_dict[next_token_id]
             print(f"Next token ID: {next_token_id}: '{id_dict[next_token_id]}'")
         print(text_generated)
-        
-
+        function = next(func for func in function_file if func["name"] == text_generated)
+        func_params: dict = function["parameters"]
+        print(list(func_params.keys()))
+        params_text = '", "parameters": {"' + list(func_params)[0] + '": '
+        params_encode = model.encode(params_text)
+        params_token = params_encode[0].tolist()
+        token_list += params_token
+        print(model.decode(token_list[prompt_len:]))
     except (FileNotFoundError, ValueError) as error:
         print(f"Error: {error}")
