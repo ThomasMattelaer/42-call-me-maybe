@@ -37,7 +37,15 @@ class ConstraintBuilder():
                               param_type: str,) -> set[int]:
         if param_type == "number":
             return self.authorized_numbers(text_generated)
-        return self.authorized_numbers(text_generated)
+        return self.authorized_strings()
+
+    def authorized_strings(self) -> set[int]:
+        authorized_id = set()
+        for token_id, text in self.id_dict.items():
+            if not text:
+                continue
+            authorized_id.add(token_id)
+        return authorized_id
 
     def authorized_numbers(self, text_value: str) -> set[int]:
         authorized_id = set()

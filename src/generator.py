@@ -12,7 +12,7 @@ class Generator():
                  model: llm,
                  builder: ConstraintBuilder,
                  id_dict: dict[int, str],
-                 end_ids: set) -> None:
+                 end_ids: dict[str, set[int]]) -> None:
         self.model = model
         self.builder = builder
         self.id_dict = id_dict
@@ -21,23 +21,41 @@ class Generator():
 
     def generate_call(self, user_request: str) -> dict:
         functions_str = self.functions_to_str(self.functions)
+        print(user_request)
         prompt = (
             "You are a function calling assistant.\n"
             f"Available functions:\n{functions_str}\n\n"
-            "Choose the function that best answers the user request.\n"
+            "Choose the function that best answers the user request and "
+            "extract its arguments from the request.\n"
+            "Rules:\n"
+            "- Copy values exactly as they appear in the request.\n"
+            "- Do not add extra spaces or quotes inside values.\n"
+            "- A regex describes a pattern to search for (for example "
+            "[0-9]+ for numbers). It is not the literal text of the request.\n"
+            "- In regular expressions, use a single backslash, never a "
+            "double one.\n\n"
+            "###Example 1\n"
+            "Request: Convert the word 'apple' to uppercase\n"
+            'Response: {"name": "fn_to_uppercase", '
+            '"parameters": {"text": "apple"}}\n\n'
+            "###Example 2\n"
+            "Request: Extract all capital letters from 'Hello World'\n"
+            'Response: {"name": "fn_extract_pattern", '
+            '"parameters": {"text": "Hello World", "pattern": "[A-Z]"}}\n\n'
             f"###User Request: {user_request}\n"
             "###Response:\n"
             '{"name": "'
         )
         token = self.model.encode(prompt)
         token_list = token[0].tolist()
-        output_text = '{"name": "'
+        output_text = '{"prompt": ' + user_request + ', "name": "'
         text_generated = self.generate_name(token_list)
         text_value = self.generate_parmams(text_generated, token_list)
         output_text += text_generated
         function_obj = self.builder.get_function(text_generated)
         output_text += text_value
         output_text += "}}"
+        print(output_text)
         final_json = json.loads(output_text)
         self.set_type(final_json, function_obj)
         return (final_json)
@@ -66,23 +84,33 @@ class Generator():
         for index, (param_name, param_info) in parameters:
             text_value = ""
             params_type = param_info["type"]
-            params_encode = self.model.encode(
-                self.builder.get_key(param_name, index)
-            )
+            key_text = self.builder.get_key(param_name, index)
+            if params_type == "string":
+                token_text = key_text + '"'
+            else:
+                token_text = key_text
+            params_encode = self.model.encode(token_text)
             params_token = params_encode[0].tolist()
             token_list += params_token
-            text += self.model.decode(params_token)
+            text += key_text
             for i in range(100):
                 logits = self.model.get_logits_from_input_ids(token_list)
                 next_token_id = self.builder.pick_token(
                     logits,
                     self.builder.authorized_parameters(text_value, params_type)
                 )
-                if next_token_id in self.end_ids:
+                if '"' in self.id_dict[next_token_id]:
+                    text_value += self.id_dict[next_token_id].split('"')[0]
+                    break
+                if next_token_id in self.end_ids[params_type]:
                     break
                 token_list.append(next_token_id)
                 text_value += self.id_dict[next_token_id]
-            text += text_value
+            if params_type == "string":
+                text += json.dumps(text_value)
+            else:
+                text += text_value
+
         return text
 
     def functions_to_str(self, input_file: list[dict]) -> str:
