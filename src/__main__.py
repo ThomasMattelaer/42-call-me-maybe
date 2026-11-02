@@ -1,10 +1,9 @@
 from .cli import parse_arguments
 from .parser import Parser
-from llm_sdk import Small_LLM_Model as llm
+from llm_sdk import Small_LLM_Model as llm  # type: ignore
 from .logits_processor import ConstraintBuilder
 from .generator import Generator
 import json
-from pathlib import Path
 import sys
 
 if __name__ == "__main__":

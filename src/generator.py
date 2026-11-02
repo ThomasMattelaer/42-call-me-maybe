@@ -1,9 +1,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+from .prompts import build_prompt
 import json
 
 if TYPE_CHECKING:
-    from llm_sdk import Small_LLM_Model as llm
+    from llm_sdk import Small_LLM_Model as llm  # type: ignore
     from .logits_processor import ConstraintBuilder
 
 
@@ -22,30 +23,7 @@ class Generator():
     def generate_call(self, user_request: str) -> dict:
         functions_str = self.functions_to_str(self.functions)
         print(user_request)
-        prompt = (
-            "You are a function calling assistant.\n"
-            f"Available functions:\n{functions_str}\n\n"
-            "Choose the function that best answers the user request and "
-            "extract its arguments from the request.\n"
-            "Rules:\n"
-            "- Copy values exactly as they appear in the request.\n"
-            "- Do not add extra spaces or quotes inside values.\n"
-            "- A regex describes a pattern to search for (for example "
-            "[0-9]+ for numbers). It is not the literal text of the request.\n"
-            "- In regular expressions, use a single backslash, never a "
-            "double one.\n\n"
-            "###Example 1\n"
-            "Request: Convert the word 'apple' to uppercase\n"
-            'Response: {"name": "fn_to_uppercase", '
-            '"parameters": {"text": "apple"}}\n\n'
-            "###Example 2\n"
-            "Request: Extract all capital letters from 'Hello World'\n"
-            'Response: {"name": "fn_extract_pattern", '
-            '"parameters": {"text": "Hello World", "pattern": "[A-Z]"}}\n\n'
-            f"###User Request: {user_request}\n"
-            "###Response:\n"
-            '{"name": "'
-        )
+        prompt = build_prompt(functions_str, user_request)
         token = self.model.encode(prompt)
         token_list = token[0].tolist()
         output_text = '{"prompt": ' + user_request + ', "name": "'

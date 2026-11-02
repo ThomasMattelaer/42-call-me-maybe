@@ -24,3 +24,6 @@ module-root = ""
 
 [tool.uv.sources]
 llm-sdk = { path = "llm_sdk", editable = true }
+
+[tool.mypy]
+exclude = ["^\\.venv/", "^llm_sdk/"]
