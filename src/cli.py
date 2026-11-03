@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
 from dataclasses import dataclass
-from pydanti import BaseModel
+from pydantic import BaseModel
 
 
 @dataclass

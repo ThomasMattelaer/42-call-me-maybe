@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by tmattela[, <login2>[, <login3>]].*
+*This project has been created as part of the 42 curriculum by tmattela*
 
 # call me maybe
 
