@@ -11,7 +11,7 @@ dependencies = [
 	"numpy",
 	"mypy",
 	"flake8",
-	"pydantic",
+	"pydantic>=2.13.4",
 	"llm-sdk"
 ]
 [build-system]
@@ -27,3 +27,8 @@ llm-sdk = { path = "llm_sdk", editable = true }
 
 [tool.mypy]
 exclude = ["^\\.venv/", "^llm_sdk/"]
+
+
+[[tool.mypy.overrides]]
+module = ["foobar.*"]
+ignore_missing_imports = true

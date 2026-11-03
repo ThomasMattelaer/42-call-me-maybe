@@ -279,7 +279,7 @@ requires-dist = [
     { name = "llm-sdk", editable = "llm_sdk" },
     { name = "mypy" },
     { name = "numpy" },
-    { name = "pydantic" },
+    { name = "pydantic", specifier = ">=2.13.4" },
 ]
 
 [[package]]

@@ -1,7 +1,8 @@
 from .models import FuncDef
+from pydantic import BaseModel, Field
 
 
-class ConstraintBuilder:
+class ConstraintBuilder(BaseModel):
     """Builder for applying structural and semantic generation constraints.
 
     Attributes:
@@ -9,6 +10,9 @@ class ConstraintBuilder:
         id_dict (dict[int, str]): Mapping from token IDs to their text
         representations.
     """
+
+    functions: list[FuncDef] = Field(validation_alias="functions_definitions")
+    id_dict: dict[int, str]
 
     def __init__(self,
                  functions_definitions: list[FuncDef],

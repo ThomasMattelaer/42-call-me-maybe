@@ -1,15 +1,17 @@
 import json
+from pydantic import BaseModel, ValidationError
 from .cli import Arguments
 from .models import FuncDef, PromptDef
 
 
-class Parser:
+class Parser(BaseModel):
     """Parser for input and function definition JSON files.
 
     Attributes:
         _input_file (Path): Path to the input JSON file.
         _function_file (Path): Path to the function definition JSON file.
     """
+    params: Arguments
 
     def __init__(self, params: Arguments):
         """Initializes the Parser with command-line arguments.
@@ -41,7 +43,7 @@ class Parser:
         for index, item in enumerate(json_file):
             try:
                 prompt.append(PromptDef.model_validate(item))
-            except ValueError as e:
+            except ValidationError as e:
                 raise ValueError(f"Wrong JSON in {self._input_file}, "
                                  + f"function#{index} : {e}")
         return prompt
@@ -69,7 +71,7 @@ class Parser:
         for index, item in enumerate(json_file):
             try:
                 funcs.append(FuncDef.model_validate(item))
-            except ValueError as e:
+            except ValidationError as e:
                 raise ValueError(f"Wrong JSON in {self._function_file}, "
                                  + f"function#{index} : {e}")
         return funcs

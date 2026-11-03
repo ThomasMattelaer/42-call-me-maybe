@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from .prompts import build_prompt
 from .models import FuncDef
+from pydantic import BaseModel, Field
 import json
 
 if TYPE_CHECKING:
@@ -24,6 +25,13 @@ class Generator:
         end_ids (dict[str, set[int]]): Mapping of parameter types to their
         termination token IDs.
     """
+    model_config = {"arbitrary_types_allowed": True}
+
+    model: Any
+    builder: ConstraintBuilder
+    id_dict: dict[int, str]
+    end_ids: dict[str, set[int]]
+    functions: list[FuncDef] = Field(default_factory=list)
 
     def __init__(self,
                  model: llm,
