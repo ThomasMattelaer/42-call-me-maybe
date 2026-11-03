@@ -12,7 +12,9 @@ if __name__ == "__main__":
         params = parse_arguments()
         parser = Parser(params)
         input_file = parser.parse_input_file()
-        prompts = parser.retrieve_info(input_file, "prompt")
+        print(input_file)
+        prompts = parser.retrieve_info(input_file)
+        print(prompts)
         function_file = parser.parse_function_file()
         final_json: list[dict] = []
         model = llm()
@@ -31,7 +33,7 @@ if __name__ == "__main__":
         for user_request in prompts:
             try:
                 final_json.append(
-                    generator.generate_call(json.dumps(user_request))
+                    generator.generate_call(user_request)
                 )
             except json.JSONDecodeError as e:
                 print(f" Error in Prompt: '{user_request}' : {e}",
@@ -42,5 +44,9 @@ if __name__ == "__main__":
                 json.dump(final_json, f, indent=2)
         except OSError as e:
             raise OSError(e)
-    except (FileNotFoundError, ValueError, KeyError, OSError) as error:
+    except (FileNotFoundError,
+            ValueError,
+            KeyError,
+            OSError,
+            KeyboardInterrupt) as error:
         print(f"Error: {error}")

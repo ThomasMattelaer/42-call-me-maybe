@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from .prompts import build_prompt
+from .models import FuncDef
 import json
 
 if TYPE_CHECKING:
@@ -8,12 +9,38 @@ if TYPE_CHECKING:
     from .logits_processor import ConstraintBuilder
 
 
-class Generator():
+class Generator:
+    """Handles text generation constrained by structured function definitions
+    and token masks.
+
+    Attributes:
+        model (llm): The underlying small language model used for token
+        generation.
+        builder (ConstraintBuilder): The helper responsible for building
+        constraints and picking tokens.
+        id_dict (dict[int, str]): Mapping from token IDs to their
+        corresponding text strings.
+        functions (list[FuncDef]): List of available function definitions.
+        end_ids (dict[str, set[int]]): Mapping of parameter types to their
+        termination token IDs.
+    """
+
     def __init__(self,
                  model: llm,
                  builder: ConstraintBuilder,
                  id_dict: dict[int, str],
                  end_ids: dict[str, set[int]]) -> None:
+        """Initializes the Generator with a model, constraint builder,
+        and vocabulary maps.
+
+        Args:
+            model (llm): The language model instance.
+            builder (ConstraintBuilder): The constraint builder instance.
+            id_dict (dict[int, str]): Dictionary mapping token IDs to string
+            representations.
+            end_ids (dict[str, set[int]]): Dictionary specifying
+            end-of-parameter token IDs per type.
+        """
         self.model = model
         self.builder = builder
         self.id_dict = id_dict
@@ -21,12 +48,22 @@ class Generator():
         self.end_ids = end_ids
 
     def generate_call(self, user_request: str) -> dict:
+        """Generates a structured function call JSON dictionary based on the
+        user request.
+
+        Args:
+            user_request (str): The natural language request from the user.
+
+        Returns:
+            dict: The parsed and type-corrected JSON representing the
+            function call.
+        """
         functions_str = self.functions_to_str(self.functions)
         print(user_request)
         prompt = build_prompt(functions_str, user_request)
         token = self.model.encode(prompt)
         token_list = token[0].tolist()
-        output_text = '{"prompt": ' + user_request + ', "name": "'
+        output_text = '{"prompt": ' + json.dumps(user_request) + ', "name": "'
         text_generated = self.generate_name(token_list)
         text_value = self.generate_parmams(text_generated, token_list)
         output_text += text_generated
@@ -34,12 +71,21 @@ class Generator():
         output_text += text_value
         output_text += "}}"
         print(output_text)
-        final_json = json.loads(output_text)
+        final_json: dict = json.loads(output_text)
         self.set_type(final_json, function_obj)
         return (final_json)
 
     def generate_name(self,
                       token_list: list[int]) -> str:
+        """Generates the function name token-by-token under strict naming
+        constraints.
+
+        Args:
+            token_list (list[int]): The current list of context token IDs.
+
+        Returns:
+            str: The generated function name string.
+        """
         text_generated = ""
         for _ in range(100):
             logits = self.model.get_logits_from_input_ids(token_list)
@@ -47,7 +93,7 @@ class Generator():
                 logits,
                 self.builder.authorized_function_name(text_generated)
             )
-            if text_generated in [func["name"] for func in self.functions]:
+            if text_generated in [func.name for func in self.functions]:
                 break
             token_list.append(next_token_id)
             text_generated += self.id_dict[next_token_id]
@@ -56,12 +102,22 @@ class Generator():
     def generate_parmams(self,
                          text_generated: str,
                          token_list: list[int]) -> str:
+        """Generates parameter values for the selected function token-by-token.
+
+        Args:
+            text_generated (str): The function name generated so far.
+            token_list (list[int]): The current list of context token IDs.
+
+        Returns:
+            str: The formatted JSON text snippet containing the generated
+            parameters.
+        """
         function_obj = self.builder.get_function(text_generated)
-        parameters = enumerate(function_obj["parameters"].items())
+        parameters = enumerate(function_obj.parameters.items())
         text = ""
         for index, (param_name, param_info) in parameters:
             text_value = ""
-            params_type = param_info["type"]
+            params_type = param_info.type
             key_text = self.builder.get_key(param_name, index)
             if params_type == "string":
                 token_text = key_text + '"'
@@ -91,12 +147,36 @@ class Generator():
 
         return text
 
-    def functions_to_str(self, input_file: list[dict]) -> str:
-        return json.dumps(input_file)
+    def functions_to_str(self, functions: list[FuncDef]) -> str:
+        """Describe the available functions as compact signatures.
 
-    def set_type(self, json_file: dict, func_obj: dict) -> None:
-        for (name, info) in func_obj["parameters"].items():
-            param_type = info["type"]
+        Args:
+            functions: The validated function definitions.
+
+        Returns:
+            One line per function: name(param: type, ...) - description.
+        """
+        lines = []
+        for func in functions:
+            params = ", ".join(
+                f"{name}: {spec.type}"
+                for name, spec in func.parameters.items()
+            )
+            lines.append(f"{func.name}({params}) - {func.description}")
+        return "\n".join(lines)
+
+    def set_type(self, json_file: dict, func_obj: FuncDef) -> None:
+        """Casts generated parameter values in the JSON dictionary to their
+        correct target types.
+
+        Args:
+            json_file (dict): The parsed function call dictionary to modify in
+            place.
+            func_obj (FuncDef): The function definition model containing
+            expected parameter types.
+        """
+        for (name, info) in func_obj.parameters.items():
+            param_type = info.type
             value = json_file["parameters"][name]
             if param_type == "number":
                 json_file["parameters"][name] = float(value)
