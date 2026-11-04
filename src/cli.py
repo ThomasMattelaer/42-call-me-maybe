@@ -42,7 +42,6 @@ def parse_arguments() -> Arguments:
         default=Path("data/output/function_calls.json"),
         type=Path)
     args = parser.parse_args()
-    print(f"Def: {args.functions_definition}, input: {args.input}, out: {args.output}")
     return Arguments(
         functions_definition=args.functions_definition,
         input_file=args.input,

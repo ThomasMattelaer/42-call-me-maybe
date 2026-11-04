@@ -149,9 +149,8 @@ class ConstraintBuilder(BaseModel):
             bool: True if the candidate string is a valid number prefix, False
             otherwise.
         """
-        valid_char = all(char in '0123456789-' for char in candidat)
-        if allow_dot:
-            valid_char = all(char in '0123456789.-' for char in candidat)
+        allowed = "0123456789-" + ("." if allow_dot else "")
+        valid_char = all(char in allowed for char in candidat)
         first_char = "-" not in candidat[1:]
         max_one_dot = candidat.count(".") <= 1
         not_a_dot = candidat.startswith(".")
