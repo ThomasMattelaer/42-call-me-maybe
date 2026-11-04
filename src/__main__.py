@@ -12,9 +12,7 @@ if __name__ == "__main__":
         params = parse_arguments()
         parser = Parser(params=params)
         input_file = parser.parse_input_file()
-        print(input_file)
         prompts = parser.retrieve_info(input_file)
-        print(prompts)
         function_file = parser.parse_function_file()
         final_json: list[dict] = []
         model = llm()

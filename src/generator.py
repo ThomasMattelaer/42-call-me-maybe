@@ -77,7 +77,7 @@ class Generator(BaseModel):
                 logits,
                 self.builder.authorized_function_name(text_generated)
             )
-            if text_generated in [func.name for func in self.functions]:
+            if text_generated in [f.name for f in self.builder.functions]:
                 break
             token_list.append(next_token_id)
             text_generated += self.id_dict[next_token_id]
