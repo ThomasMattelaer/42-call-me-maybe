@@ -6,11 +6,10 @@ from pydantic import BaseModel, Field
 import json
 
 if TYPE_CHECKING:
-    from llm_sdk import Small_LLM_Model as llm  # type: ignore
     from .logits_processor import ConstraintBuilder
 
 
-class Generator:
+class Generator(BaseModel):
     """Handles text generation constrained by structured function definitions
     and token masks.
 
@@ -31,29 +30,6 @@ class Generator:
     builder: ConstraintBuilder
     id_dict: dict[int, str]
     end_ids: dict[str, set[int]]
-    functions: list[FuncDef] = Field(default_factory=list)
-
-    def __init__(self,
-                 model: llm,
-                 builder: ConstraintBuilder,
-                 id_dict: dict[int, str],
-                 end_ids: dict[str, set[int]]) -> None:
-        """Initializes the Generator with a model, constraint builder,
-        and vocabulary maps.
-
-        Args:
-            model (llm): The language model instance.
-            builder (ConstraintBuilder): The constraint builder instance.
-            id_dict (dict[int, str]): Dictionary mapping token IDs to string
-            representations.
-            end_ids (dict[str, set[int]]): Dictionary specifying
-            end-of-parameter token IDs per type.
-        """
-        self.model = model
-        self.builder = builder
-        self.id_dict = id_dict
-        self.functions = builder.function_names()
-        self.end_ids = end_ids
 
     def generate_call(self, user_request: str) -> dict:
         """Generates a structured function call JSON dictionary based on the
@@ -66,7 +42,7 @@ class Generator:
             dict: The parsed and type-corrected JSON representing the
             function call.
         """
-        functions_str = self.functions_to_str(self.functions)
+        functions_str = self.functions_to_str(self.builder.functions)
         print(user_request)
         prompt = build_prompt(functions_str, user_request)
         token = self.model.encode(prompt)

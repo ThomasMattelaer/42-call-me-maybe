@@ -10,7 +10,7 @@ if __name__ == "__main__":
     print("Working")
     try:
         params = parse_arguments()
-        parser = Parser(params)
+        parser = Parser(params=params)
         input_file = parser.parse_input_file()
         print(input_file)
         prompts = parser.retrieve_info(input_file)
@@ -28,8 +28,10 @@ if __name__ == "__main__":
         id_dict_raw = {val: key for key, val in token_dict.items()}
         id_dict = {key: val.replace('Ġ', ' ').replace('Ċ', '\n')
                    for key, val in id_dict_raw.items()}
-        builder = ConstraintBuilder(function_file, id_dict)
-        generator = Generator(model, builder, id_dict, end_ids)
+        builder = ConstraintBuilder(functions_definitions=function_file,
+                                    id_dict=id_dict)
+        generator = Generator(model=model, builder=builder,
+                              id_dict=id_dict, end_ids=end_ids)
         for user_request in prompts:
             try:
                 final_json.append(

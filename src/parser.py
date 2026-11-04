@@ -13,16 +13,6 @@ class Parser(BaseModel):
     """
     params: Arguments
 
-    def __init__(self, params: Arguments):
-        """Initializes the Parser with command-line arguments.
-
-        Args:
-            params (Arguments): The parsed command-line arguments containing
-            file paths.
-        """
-        self._input_file = params.input_file
-        self._function_file = params.functions_definition
-
     def parse_input_file(self) -> list[PromptDef]:
         """Parses and validates the input JSON file.
 
@@ -30,13 +20,15 @@ class Parser(BaseModel):
             list[dict]: The content of the input JSON file as a list of
             dictionaries.
         """
-        if not self._input_file.exists():
-            raise FileNotFoundError(f"File not found: {self._input_file}")
-        if not self._input_file.is_file():
-            raise ValueError(f"The path: {self._input_file} is not a file")
+        if not self.params.input_file.exists():
+            raise FileNotFoundError("File not found:" +
+                                    f"{self.params.input_file}")
+        if not self.params.input_file.is_file():
+            raise ValueError(f"The path: {self.params.input_file}" +
+                             "is not a file")
         prompt = []
         try:
-            with open(self._input_file, "r") as file:
+            with open(self.params.input_file, "r") as file:
                 json_file = json.load(file)
         except (json.JSONDecodeError, OSError, UnicodeDecodeError) as error:
             raise ValueError(error)
@@ -44,7 +36,7 @@ class Parser(BaseModel):
             try:
                 prompt.append(PromptDef.model_validate(item))
             except ValidationError as e:
-                raise ValueError(f"Wrong JSON in {self._input_file}, "
+                raise ValueError(f"Wrong JSON in {self.params.input_file}, "
                                  + f"function#{index} : {e}")
         return prompt
 
@@ -54,12 +46,14 @@ class Parser(BaseModel):
         Returns:
             list[FuncDef]: A list of validated function definition models.
         """
-        if not self._function_file.exists():
-            raise FileNotFoundError(f"File not found: {self._function_file}")
-        if not self._function_file.is_file():
-            raise ValueError(f"The path: {self._function_file} is not a file")
+        if not self.params.functions_definitions.exists():
+            raise FileNotFoundError("File not found:" +
+                                    f"{self.params.functions_definitions}")
+        if not self.params.functions_definitions.is_file():
+            raise ValueError(f"The path: {self.params.functions_definitions}" +
+                             "is not a file")
         try:
-            with open(self._function_file, "r") as file:
+            with open(self.params.functions_definitions, "r") as file:
                 json_file = json.load(file)
         except (json.JSONDecodeError, OSError, UnicodeDecodeError) as error:
             raise ValueError(error)
@@ -72,7 +66,8 @@ class Parser(BaseModel):
             try:
                 funcs.append(FuncDef.model_validate(item))
             except ValidationError as e:
-                raise ValueError(f"Wrong JSON in {self._function_file}, "
+                raise ValueError("Wrong JSON in" +
+                                 f"{self.params.functions_definitions}, "
                                  + f"function#{index} : {e}")
         return funcs
 

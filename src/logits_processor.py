@@ -14,21 +14,6 @@ class ConstraintBuilder(BaseModel):
     functions: list[FuncDef] = Field(validation_alias="functions_definitions")
     id_dict: dict[int, str]
 
-    def __init__(self,
-                 functions_definitions: list[FuncDef],
-                 id_dict: dict[int, str]) -> None:
-        """Initializes the ConstraintBuilder with functions and vocabulary
-        dictionary.
-
-        Args:
-            functions_definitions (list[FuncDef]): The available
-            function definitions.
-            id_dict (dict[int, str]): A dictionary mapping token IDs to their
-            text strings.
-        """
-        self.functions = functions_definitions
-        self.id_dict = id_dict
-
     def pick_token(self, logits: list[float], authorized_id: set[int]) -> int:
         """Selects the best token index from logits among authorized IDs
         , masking others.
