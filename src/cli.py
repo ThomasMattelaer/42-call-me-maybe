@@ -1,10 +1,8 @@
 from argparse import ArgumentParser
 from pathlib import Path
-from dataclasses import dataclass
 from pydantic import BaseModel
 
 
-@dataclass
 class Arguments(BaseModel):
     """Holds command-line configuration paths for input files and output
     results.
