@@ -46,14 +46,14 @@ class Parser(BaseModel):
         Returns:
             list[FuncDef]: A list of validated function definition models.
         """
-        if not self.params.functions_definitions.exists():
+        if not self.params.functions_definition.exists():
             raise FileNotFoundError("File not found:" +
-                                    f"{self.params.functions_definitions}")
-        if not self.params.functions_definitions.is_file():
-            raise ValueError(f"The path: {self.params.functions_definitions}" +
+                                    f"{self.params.functions_definition}")
+        if not self.params.functions_definition.is_file():
+            raise ValueError(f"The path: {self.params.functions_definition}" +
                              "is not a file")
         try:
-            with open(self.params.functions_definitions, "r") as file:
+            with open(self.params.functions_definition, "r") as file:
                 json_file = json.load(file)
         except (json.JSONDecodeError, OSError, UnicodeDecodeError) as error:
             raise ValueError(error)
@@ -67,7 +67,7 @@ class Parser(BaseModel):
                 funcs.append(FuncDef.model_validate(item))
             except ValidationError as e:
                 raise ValueError("Wrong JSON in" +
-                                 f"{self.params.functions_definitions}, "
+                                 f"{self.params.functions_definition}, "
                                  + f"function#{index} : {e}")
         return funcs
 
