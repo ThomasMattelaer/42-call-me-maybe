@@ -23,6 +23,7 @@ if __name__ == "__main__":
         brace_id = token_dict["}"]
         quote_id = token_dict['"']
         end_ids = {"number": {comma_id, brace_id}, "string": {quote_id}}
+        end_ids["integer"] = end_ids["number"]
         id_dict_raw = {val: key for key, val in token_dict.items()}
         id_dict = {key: val.replace('Ġ', ' ').replace('Ċ', '\n')
                    for key, val in id_dict_raw.items()}

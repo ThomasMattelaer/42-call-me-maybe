@@ -98,7 +98,9 @@ class ConstraintBuilder(BaseModel):
             set[int]: A set of authorized token IDs.
         """
         if param_type == "number":
-            return self.authorized_numbers(text_generated)
+            return self.authorized_numbers(text_generated, allow_dot=True)
+        elif param_type == "integer":
+            return self.authorized_numbers(text_generated, allow_dot=False)
         return self.authorized_strings()
 
     def authorized_strings(self) -> set[int]:
@@ -116,7 +118,7 @@ class ConstraintBuilder(BaseModel):
             authorized_id.add(token_id)
         return authorized_id
 
-    def authorized_numbers(self, text_value: str) -> set[int]:
+    def authorized_numbers(self, text_value: str, allow_dot: bool) -> set[int]:
         """Determines token IDs authorized for numeric value generation.
 
         Args:
@@ -133,11 +135,11 @@ class ConstraintBuilder(BaseModel):
             if ((text == "," or text == "}")
                and self.is_complete_number(text_value)):
                 authorized_id.add(token_id)
-            elif (self.is_number_prefix(candidat)):
+            elif (self.is_number_prefix(candidat, allow_dot)):
                 authorized_id.add(token_id)
         return authorized_id
 
-    def is_number_prefix(self, candidat: str) -> bool:
+    def is_number_prefix(self, candidat: str, allow_dot: bool) -> bool:
         """Validates if a candidate string forms a valid numeric prefix.
 
         Args:
@@ -147,7 +149,9 @@ class ConstraintBuilder(BaseModel):
             bool: True if the candidate string is a valid number prefix, False
             otherwise.
         """
-        valid_char = all(char in '0123456789.-' for char in candidat)
+        valid_char = all(char in '0123456789-' for char in candidat)
+        if allow_dot:
+            valid_char = all(char in '0123456789.-' for char in candidat)
         first_char = "-" not in candidat[1:]
         max_one_dot = candidat.count(".") <= 1
         not_a_dot = candidat.startswith(".")

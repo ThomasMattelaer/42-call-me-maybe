@@ -10,7 +10,7 @@ export HF_HOME := /sgoinfre/students/$(USER)/huggingface
 all: install run
 
 run:
-	@uv run python -m src
+	@uv run python -m src $(ARGS)
 
 install:
 	@mkdir -p $(VIRTUAL_ENV) $(UV_CACHE_DIR) $(UV_PYTHON_CACHE_DIR) $(HF_HOME)

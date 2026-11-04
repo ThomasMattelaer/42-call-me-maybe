@@ -164,3 +164,5 @@ class Generator(BaseModel):
             value = json_file["parameters"][name]
             if param_type == "number":
                 json_file["parameters"][name] = float(value)
+            elif param_type == "integer":
+                json_file["parameters"][name] = int(value)
